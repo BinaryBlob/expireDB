@@ -8,10 +8,10 @@ This is still under development, nothing more than a toy system right now. Do no
 howto
 =====
 
-https://github.com/BinaryBlob/expireDB.git
+```git clone https://github.com/BinaryBlob/expireDB.git```
 
-cd expireDB
+```cd expireDB```
 
-go build
+```go build```
 
-./expireDB
+```./expireDB```
