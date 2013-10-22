@@ -12,8 +12,7 @@ import (
 )
 
 var (
-	CACHE      = map[string]string{}
-	singleFlag = flag.Bool("single", false, "Start in single mode")
+	CACHE = map[string]string{}
 )
 
 func main() {
