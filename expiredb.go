@@ -39,9 +39,6 @@ func main() {
 
 }
 
-/*
- * Networking
- */
 func handleConn(conn net.Conn) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
