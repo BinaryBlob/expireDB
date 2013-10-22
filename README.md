@@ -14,6 +14,5 @@ howto
 
 ```go build```
 
-```./expireDB```
+``` ./expireDB ```
 
-Profit.
