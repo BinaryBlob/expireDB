@@ -11,6 +11,6 @@ for i in range(int(sys.argv[3])):
 
     sock.sendall('get {0} \n'.format(i))
     res = sock.recv(4096)
-    #print(res)
+    print(res)
 
 sock.close()
