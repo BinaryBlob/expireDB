@@ -19,19 +19,20 @@ type Value struct {
 
 var (
 	CACHE = map[string]Value{}
+	bind  = flag.String("bind", "127.0.0.1:11211", "Address:port to bind to")
 )
 
 func main() {
 	flag.Parse()
 
-	listener, err := net.Listen("tcp", "127.0.0.1:11211")
+	listener, err := net.Listen("tcp", *bind)
 	if err != nil {
 		panic("Error listening on 11211: " + err.Error())
 	}
 
 	CACHE = make(map[string]Value)
 
-	log.Printf("\x1b[32m [*] Listening on:\x1b[0m 127.0.0.1:11211")
+	log.Printf("\x1b[32m [*] Listening on:\x1b[0m %s", *bind)
 
 	for {
 		netconn, err := listener.Accept()
