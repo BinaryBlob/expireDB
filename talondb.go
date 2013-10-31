@@ -11,11 +11,6 @@ import (
 	"unicode/utf8"
 )
 
-//type Value struct {
-//	Value  []byte
-//	expire int
-//}
-
 var (
 	CACHE = map[string]string{}
 	bind  = flag.String("bind", "127.0.0.1:11211", "Address:port to bind to")
@@ -46,6 +41,11 @@ func main() {
 
 func handleConn(conn net.Conn) {
 	defer conn.Close()
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
+	}()
 	reader := bufio.NewReader(conn)
 	for {
 
@@ -66,26 +66,39 @@ func handleConn(conn net.Conn) {
 
 		switch cmd {
 		case "get":
+			//log.Printf(" [*] GET key")
 			key := parts[1]
 			value, ok := CACHE[key]
 			if ok {
-				conn.Write([]uint8("VALUE " + key + " " + string(value) + "\r\n"))
+				_, err := conn.Write([]uint8("VALUE " + key + " " + string(value) + "\r\n\r\n"))
+				if err != nil {
+					return
+				}
+			} else {
+				_, err = conn.Write([]uint8("VALUE none"))
+				if err != nil {
+					return
+				}
+
 			}
-			conn.Write([]uint8("END\r\n"))
+
+			conn.Write([]uint8("\r\n"))
+
+			conn.Close()
 
 		case "set":
 			key := parts[1]
 
-			length := utf8.RuneCountInString(parts[2])
+			length := utf8.RuneCountInString(parts[2]) + 120
 			val := make([]byte, length)
 			val = []byte(parts[2])
 
-			//expire, _ := strconv.Atoi(parts[3])
-
 			CACHE[key] = string(val)
 
-			log.Printf(" [*] Stored key")
+			//log.Printf(" [*] Stored key")
 			conn.Write([]uint8("STORED\r\n"))
+
+			//conn.Close()
 		}
 	}
 }
