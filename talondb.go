@@ -7,18 +7,17 @@ import (
 	"io"
 	"log"
 	"net"
-	"strconv"
 	"strings"
 	"unicode/utf8"
 )
 
-type Value struct {
-	Value  []byte
-	expire int
-}
+//type Value struct {
+//	Value  []byte
+//	expire int
+//}
 
 var (
-	CACHE = map[string]Value{}
+	CACHE = map[string]string{}
 	bind  = flag.String("bind", "127.0.0.1:11211", "Address:port to bind to")
 )
 
@@ -30,7 +29,7 @@ func main() {
 		panic("Error listening on 11211: " + err.Error())
 	}
 
-	CACHE = make(map[string]Value)
+	CACHE = make(map[string]string)
 
 	log.Printf("\x1b[32m [*] Listening on:\x1b[0m %s", *bind)
 
@@ -70,7 +69,7 @@ func handleConn(conn net.Conn) {
 			key := parts[1]
 			value, ok := CACHE[key]
 			if ok {
-				conn.Write([]uint8("VALUE " + key + " " + string(value.Value) + "\r\n"))
+				conn.Write([]uint8("VALUE " + key + " " + string(value) + "\r\n"))
 			}
 			conn.Write([]uint8("END\r\n"))
 
@@ -81,9 +80,9 @@ func handleConn(conn net.Conn) {
 			val := make([]byte, length)
 			val = []byte(parts[2])
 
-			expire, _ := strconv.Atoi(parts[3])
+			//expire, _ := strconv.Atoi(parts[3])
 
-			CACHE[key] = Value{val, expire}
+			CACHE[key] = string(val)
 
 			log.Printf(" [*] Stored key")
 			conn.Write([]uint8("STORED\r\n"))
