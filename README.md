@@ -1,4 +1,4 @@
-talobDB
+talonDB
 ========
 
 Fast key/value store
