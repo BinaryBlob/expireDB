@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"runtime"
 	"strings"
 	"unicode/utf8"
 )
@@ -17,6 +18,7 @@ var (
 )
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	flag.Parse()
 
 	listener, err := net.Listen("tcp", *bind)
