@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -35,6 +36,9 @@ func main() {
 
 	log.Printf("\x1b[32m [*] Listening on:\x1b[0m %s", *bind)
 
+	// Load the cache saved on disk
+	loadCache()
+
 	for {
 		netconn, err := listener.Accept()
 		if err != nil {
@@ -44,6 +48,22 @@ func main() {
 		go handleConn(netconn)
 	}
 
+}
+
+func loadCache() {
+	n, err := ioutil.ReadFile("talon.db")
+	if err != nil {
+		panic(err)
+	}
+
+	p := bytes.NewBuffer(n)
+
+	dec := gob.NewDecoder(p)
+	err = dec.Decode(&CACHE)
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("%v", CACHE)
 }
 
 func syncCache() {
@@ -133,7 +153,8 @@ func handleConn(conn net.Conn) {
 
 			return
 		case "save":
-			syncCache()
+			log.Printf(" [*] Writing CACHE to disk")
+			go syncCache()
 		}
 	}
 }
