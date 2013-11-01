@@ -19,7 +19,7 @@ import (
 var (
 	CACHE = map[string]string{}
 	bind  = flag.String("bind", "127.0.0.1:11211", "Address:port to bind to")
-	db    = flag.String("db", "talon.db", "database to use")
+	db    = flag.String("db", "talon.db", "path to database")
 )
 
 func main() {
@@ -136,8 +136,6 @@ func handleConn(conn net.Conn) {
 
 			conn.Write([]uint8("\r\n"))
 
-			return
-
 		case "set":
 			key := parts[1]
 
@@ -150,10 +148,13 @@ func handleConn(conn net.Conn) {
 			//log.Printf(" [*] Stored key")
 			conn.Write([]uint8("STORED\r\n"))
 
-			return
 		case "save":
 			log.Printf(" [*] Writing CACHE to disk")
 			go syncCache()
+		case "delete":
+			key := parts[1]
+			delete(CACHE, key)
+			log.Printf(" [*] Deleted [%v] from CACHE", key)
 		}
 	}
 }
