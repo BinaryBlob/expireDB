@@ -2,11 +2,14 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/gob"
 	"flag"
 	"fmt"
 	"io"
 	"log"
 	"net"
+	"os"
 	"runtime"
 	"strings"
 	"unicode/utf8"
@@ -18,7 +21,9 @@ var (
 )
 
 func main() {
+	// NUmber of cpu's to use
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	flag.Parse()
 
 	listener, err := net.Listen("tcp", *bind)
@@ -39,6 +44,36 @@ func main() {
 		go handleConn(netconn)
 	}
 
+}
+
+func syncCache() {
+	b := new(bytes.Buffer)
+	enc := gob.NewEncoder(b)
+	err := enc.Encode(CACHE)
+	if err != nil {
+		log.Printf("Error detected while encoding: %v", err)
+		return
+	}
+
+	fmt.Printf("%v", enc)
+
+	// Write gob object to file
+
+	// open output file
+	fo, err := os.Create("talon.db")
+	if err != nil {
+		panic(err)
+	}
+	// close fo on exit and check for its returned error
+	defer func() {
+		if err := fo.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	if _, err := fo.Write(b.Bytes()); err != nil {
+		panic(err)
+	}
 }
 
 func handleConn(conn net.Conn) {
@@ -97,6 +132,8 @@ func handleConn(conn net.Conn) {
 			conn.Write([]uint8("STORED\r\n"))
 
 			return
+		case "save":
+			syncCache()
 		}
 	}
 }
