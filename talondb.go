@@ -19,6 +19,7 @@ import (
 var (
 	CACHE = map[string]string{}
 	bind  = flag.String("bind", "127.0.0.1:11211", "Address:port to bind to")
+	db    = flag.String("db", "talon.db", "database to use")
 )
 
 func main() {
@@ -51,9 +52,9 @@ func main() {
 }
 
 func loadCache() {
-	n, err := ioutil.ReadFile("talon.db")
+	n, err := ioutil.ReadFile(*db)
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	p := bytes.NewBuffer(n)
@@ -61,7 +62,7 @@ func loadCache() {
 	dec := gob.NewDecoder(p)
 	err = dec.Decode(&CACHE)
 	if err != nil {
-		panic(err)
+		return
 	}
 	log.Printf("%v", CACHE)
 }
@@ -75,12 +76,10 @@ func syncCache() {
 		return
 	}
 
-	fmt.Printf("%v", enc)
-
 	// Write gob object to file
 
 	// open output file
-	fo, err := os.Create("talon.db")
+	fo, err := os.Create(*db)
 	if err != nil {
 		panic(err)
 	}
