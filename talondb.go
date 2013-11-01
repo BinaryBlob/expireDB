@@ -41,11 +41,7 @@ func main() {
 
 func handleConn(conn net.Conn) {
 	defer conn.Close()
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("Recovered in f", r)
-		}
-	}()
+
 	reader := bufio.NewReader(conn)
 	for {
 
@@ -84,7 +80,7 @@ func handleConn(conn net.Conn) {
 
 			conn.Write([]uint8("\r\n"))
 
-			conn.Close()
+			return
 
 		case "set":
 			key := parts[1]
@@ -98,7 +94,7 @@ func handleConn(conn net.Conn) {
 			//log.Printf(" [*] Stored key")
 			conn.Write([]uint8("STORED\r\n"))
 
-			//conn.Close()
+			return
 		}
 	}
 }
