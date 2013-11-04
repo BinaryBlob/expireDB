@@ -30,6 +30,7 @@ func main() {
 
 	listener, err := net.Listen("tcp", *bind)
 	if err != nil {
+		log.Printf("net.Listen error")
 		panic("Error listening on 11211: " + err.Error())
 	}
 
@@ -43,6 +44,7 @@ func main() {
 	for {
 		netconn, err := listener.Accept()
 		if err != nil {
+			log.Printf("Listener.Accept() error")
 			panic("Accept error: " + err.Error())
 		}
 
@@ -81,6 +83,7 @@ func syncCache() {
 	// open output file
 	fo, err := os.Create(*db)
 	if err != nil {
+		log.Printf("Saving error")
 		panic(err)
 	}
 	// close fo on exit and check for its returned error
@@ -91,6 +94,7 @@ func syncCache() {
 	}()
 
 	if _, err := fo.Write(b.Bytes()); err != nil {
+		log.Printf("Error writing bytes SAVE")
 		panic(err)
 	}
 }
