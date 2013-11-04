@@ -135,6 +135,7 @@ func handleConn(conn net.Conn) {
 			}
 
 			conn.Write([]uint8("\r\n"))
+			return
 
 		case "set":
 			key := parts[1]
@@ -146,7 +147,12 @@ func handleConn(conn net.Conn) {
 			CACHE[key] = string(val)
 
 			//log.Printf(" [*] Stored key")
-			conn.Write([]uint8("STORED\r\n"))
+			_, err := conn.Write([]uint8("STORED\r\n"))
+			if err != nil {
+				conn.Write([]uint8("ERROR"))
+				return
+			}
+			return
 
 		case "save":
 			log.Printf(" [*] Writing CACHE to disk")
@@ -155,6 +161,7 @@ func handleConn(conn net.Conn) {
 			key := parts[1]
 			delete(CACHE, key)
 			log.Printf(" [*] Deleted [%v] from CACHE", key)
+			return
 		}
 	}
 }
