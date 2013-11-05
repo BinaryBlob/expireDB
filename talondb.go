@@ -154,8 +154,6 @@ func handleConn(conn net.Conn, ioHandler chan CacheItem) {
 
 			}
 
-			conn.Write([]uint8("\r\n"))
-
 			if *autoclose == true {
 				return
 			}
