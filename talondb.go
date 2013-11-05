@@ -142,7 +142,7 @@ func handleConn(conn net.Conn, ioHandler chan CacheItem) {
 			key := parts[1]
 			value, ok := CACHE[key]
 			if ok {
-				_, err := conn.Write([]uint8("VALUE " + key + " " + string(value) + "\r\n\r\n"))
+				_, err := conn.Write([]uint8("VALUE " + key + " " + string(value) + "\r\n"))
 				if err != nil {
 					return
 				}
