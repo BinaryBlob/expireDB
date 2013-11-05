@@ -22,4 +22,5 @@ _testmain.go
 *~
 
 *.exe
-expireDB
+talonDB
+talondb.db
