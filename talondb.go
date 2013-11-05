@@ -18,9 +18,10 @@ import (
 )
 
 var (
-	CACHE = map[string]string{}
-	bind  = flag.String("bind", "127.0.0.1:11211", "Address:port to bind to")
-	db    = flag.String("db", "talon.db", "path to database")
+	CACHE     = map[string]string{}
+	bind      = flag.String("bind", "127.0.0.1:11211", "Address:port to bind to")
+	db        = flag.String("db", "talon.db", "path to database")
+	autoclose = flag.Bool("autoclose", false, "Autoclose every connection [true/false]")
 )
 
 type CacheItem struct {
@@ -154,7 +155,10 @@ func handleConn(conn net.Conn, ioHandler chan CacheItem) {
 			}
 
 			conn.Write([]uint8("\r\n"))
-			return
+
+			if *autoclose == true {
+				return
+			}
 
 		case "set":
 			key := parts[1]
@@ -171,7 +175,10 @@ func handleConn(conn net.Conn, ioHandler chan CacheItem) {
 				conn.Write([]uint8("ERROR"))
 				return
 			}
-			return
+
+			if *autoclose == true {
+				return
+			}
 
 		case "save":
 			log.Printf(" [*] Writing CACHE to disk")
@@ -181,7 +188,10 @@ func handleConn(conn net.Conn, ioHandler chan CacheItem) {
 			key := parts[1]
 			delete(CACHE, key)
 			log.Printf(" [*] Deleted [%v] from CACHE", key)
-			return
+
+			if *autoclose == true {
+				return
+			}
 
 		case "stats":
 			stats := strconv.Itoa(len(CACHE))
