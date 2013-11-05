@@ -67,7 +67,6 @@ func ioHandler(cs chan CacheItem) {
 		item := <-cs
 		CACHE[item.Key] = string(item.Value)
 	}
-
 }
 
 func loadCache() {
@@ -105,6 +104,7 @@ func syncCache() {
 	}
 	// close fo on exit and check for its returned error
 	defer func() {
+		log.Printf(" [*] Done saving to disk")
 		if err := fo.Close(); err != nil {
 			panic(err)
 		}
