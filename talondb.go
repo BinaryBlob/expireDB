@@ -189,6 +189,9 @@ func handleConn(conn net.Conn, ioHandler chan CacheItem) {
 			if err != nil {
 				return
 			}
+
+		case "exit":
+			return
 		}
 	}
 }
