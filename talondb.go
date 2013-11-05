@@ -12,6 +12,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -22,11 +23,19 @@ var (
 	db    = flag.String("db", "talon.db", "path to database")
 )
 
+type CacheItem struct {
+	Key   string
+	Value []byte
+}
+
 func main() {
 	// NUmber of cpu's to use
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	flag.Parse()
+
+	ioChannel := make(chan CacheItem)
+	go ioHandler(ioChannel)
 
 	listener, err := net.Listen("tcp", *bind)
 	if err != nil {
@@ -48,7 +57,15 @@ func main() {
 			panic("Accept error: " + err.Error())
 		}
 
-		go handleConn(netconn)
+		go handleConn(netconn, ioChannel)
+	}
+
+}
+
+func ioHandler(cs chan CacheItem) {
+	for {
+		item := <-cs
+		CACHE[item.Key] = string(item.Value)
 	}
 
 }
@@ -99,7 +116,7 @@ func syncCache() {
 	}
 }
 
-func handleConn(conn net.Conn) {
+func handleConn(conn net.Conn, ioHandler chan CacheItem) {
 	defer conn.Close()
 
 	reader := bufio.NewReader(conn)
@@ -122,7 +139,6 @@ func handleConn(conn net.Conn) {
 
 		switch cmd {
 		case "get":
-			//log.Printf(" [*] GET key")
 			key := parts[1]
 			value, ok := CACHE[key]
 			if ok {
@@ -131,7 +147,7 @@ func handleConn(conn net.Conn) {
 					return
 				}
 			} else {
-				_, err = conn.Write([]uint8("VALUE none"))
+				_, err = conn.Write([]uint8("VALUE nil"))
 				if err != nil {
 					return
 				}
@@ -148,9 +164,9 @@ func handleConn(conn net.Conn) {
 			val := make([]byte, length)
 			val = []byte(parts[2])
 
-			CACHE[key] = string(val)
+			kv := CacheItem{key, val}
+			ioHandler <- kv
 
-			//log.Printf(" [*] Stored key")
 			_, err := conn.Write([]uint8("STORED\r\n"))
 			if err != nil {
 				conn.Write([]uint8("ERROR"))
@@ -161,11 +177,19 @@ func handleConn(conn net.Conn) {
 		case "save":
 			log.Printf(" [*] Writing CACHE to disk")
 			go syncCache()
+
 		case "delete":
 			key := parts[1]
 			delete(CACHE, key)
 			log.Printf(" [*] Deleted [%v] from CACHE", key)
 			return
+
+		case "stats":
+			stats := strconv.Itoa(len(CACHE))
+			_, err = conn.Write([]uint8("KEYS " + stats))
+			if err != nil {
+				return
+			}
 		}
 	}
 }
