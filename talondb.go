@@ -82,7 +82,6 @@ func loadCache() {
 	if err != nil {
 		return
 	}
-	log.Printf("%v", CACHE)
 }
 
 func syncCache() {
